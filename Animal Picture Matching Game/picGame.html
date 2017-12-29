@@ -1,0 +1,221 @@
+<!--
+      This game requires players to match a pair of animal pictures. Players need to click an animal picture and then find a match for that picture. Each matching pair is rewarded 1 point and the players have 1 minute to complete the game.
+      
+      Author: Li
+      Date:   12/26/2017
+
+      Filename: picGame.html including CSS and JavaScript
+   -->
+
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Matching Game</title>
+</head>
+
+<!-- Style for the game board -->
+<style>
+h3, #timer{
+	margin: 0px;
+}
+
+img {
+	height: 200px;
+	width: 150px;
+}
+
+#score {
+	color: red;
+	margin: 0px;
+}
+
+td {
+	border: 6px solid blue;
+}
+
+button {
+    background-color: green;
+	border-radius: 12px;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+</style>
+
+<!-- The following JavaScript is to load the initial game, set the timer, compare the two selected pictures, score the matching pair, play audio and shuffle the array of pictures -->
+
+<script>
+	 
+	//Global variables
+	
+	var numClick = 0;
+	var totalClick = 0;
+	var first;
+	var second;
+	var score = 0;
+		
+	var pics = [];
+	pics[0] = 'images/cat.png';
+	pics[1] = 'images/dog.png';
+	pics[2] = 'images/sheep.png';
+	pics[3] = 'images/elephant.png';
+	pics[4] = 'images/dog.png';
+	pics[5] = 'images/cat.png';
+	pics[6] = 'images/elephant.png';
+	pics[7] = 'images/sheep.png';
+	
+	// This function is to shuffle the animal pictures
+	function shuffle(array) {
+		var currentIndex = array.length, temporaryValue, randomIndex;
+			
+		//While there are remaining pictures to shuffle
+		while (0 !== currentIndex){
+			randomIndex = Math.floor(Math.random() * currentIndex);
+			currentIndex -= 1;
+						
+			//Swap it with the current picture
+			temporaryValue = array[currentIndex];
+			array[currentIndex] = array[randomIndex];
+			array[randomIndex] = temporaryValue;
+		}
+		return array;
+	}
+	
+	//Call the shuffle function to put the pictures in random order
+	var newArray;
+	newArray = shuffle(pics);
+	
+	//This function is to start a new game
+	function startGame() {
+		score = 0;
+		totalClick = 0;
+		location.reload();
+	}
+	
+	//This function is to set the timer to countdown for 1 minute
+	function startTimer() {
+		var presentTime = document.getElementById('timer').innerHTML;
+		var timeArray = presentTime.split(/[:]+/);
+		var m = timeArray[0];
+		var s = checkSecond((timeArray[1] - 1));
+		if(s == 59){
+			m = m-1
+		} 
+		// Time is up and the game starts over again
+		if (m < 0){
+			startGame();
+		}
+	  	  
+		document.getElementById('timer').innerHTML = m + ":" + s;
+		var newTime = document.getElementById('timer').innerHTML;
+		setTimeout(startTimer, 1000);
+	}
+
+	//This function is to format and adjust the second	
+	function checkSecond(sec) {
+	  if (sec < 10 && sec >= 0) {sec = "0" + sec}; // add zero in front of numbers < 10
+	  if (sec < 0) {sec = "59"};
+	  return sec;
+	}
+
+	//This function is called when the player clicks a picture
+	function choose(pic){
+		// Add animal sound effect when clicking on animal picture
+		var subArray = pics[pic].split(/[/]+/);
+		var soundArray = subArray[1].split(/[.]+/);
+		var audioFile = "sounds/"+soundArray[0]+".mp3"
+		var audio = new Audio(audioFile);
+		audio.play();
+		
+		// Start the countdown for 1 minute
+		if (totalClick == 0){
+			startTimer();
+		} else if (score === 4) {
+			startGame();
+		}
+		
+		if (numClick == 0) {
+			//Set the picture that the player clicks on
+			firstPic = pic;
+			document.images[pic].src = pics[pic];
+			numClick = 1;
+			totalClick ++;
+		} else if (numClick == 1) {
+				numClick = 2;
+				totalClick ++;
+				secondPic = pic;
+				document.images[pic].src = pics[pic];
+				//Wait less than half a second for a picture to flip
+				timer = setInterval(control, 400);
+		} else {
+				//Allow one click per picture so that only two pictures will be shown until flipped over
+				alert("You can click on a picture once. Game will be re-started.");
+				score = 0;
+				startGame();
+		}
+	}
+	
+	//Check to see if the two pictures are matched
+	function control() {
+		clearInterval(timer);
+		numClick = 0;
+		if (pics[firstPic] === pics[secondPic]){
+					
+			//If the first picture is equal to the second picture, then it is matched
+			score ++;
+			document.getElementById("score").innerHTML = score;
+						
+			if (score === 4){
+				var msgDiv = document.getElementById("message");
+				msgDiv.innerHTML = "Good Job! You have matched all the pictures. Please click to start the game again.";
+				msgDiv.style.display = "block";
+				msgDiv.style.fontSize = "20px";
+				msgDiv.style.color = "red";
+				var audio2 = new Audio("sounds/applause.wav");
+				audio2.play();
+			}
+		} else {
+			document.images[firstPic].src = "images/question.png";
+			document.images[secondPic].src = "images/question.png";
+			return;
+		}
+	}
+
+</script>	
+
+<body bgcolor="lightgray">
+
+	<center>
+		<h2>Animal Picture Matching Game</h2>
+		<button id="start" onClick="startGame()">Start Game!</button>
+		<h3>Time Left: <span id="timer">01:00</span><h3>
+		<h3>Score: <span id="score">0</span></h3>
+		<div id="message"></div>
+
+		<table border="8" bordercolor="yellow">
+			<tr>
+				<td><img src="images/question.png" onclick="choose(0)" /></rd>
+				<td><img src="images/question.png" onclick="choose(1)" /></rd>
+				<td><img src="images/question.png" onclick="choose(2)" /></rd>
+				<td><img src="images/question.png" onclick="choose(3)" /></rd>
+			</tr>
+			<br>
+			<tr>
+				<td><img src="images/question.png" onclick="choose(4)" /></rd>
+				<td><img src="images/question.png" onclick="choose(5)" /></rd>
+				<td><img src="images/question.png" onclick="choose(6)" /></rd>
+				<td><img src="images/question.png" onclick="choose(7)" /></rd>
+			</tr>
+			<br>
+		</table>
+	</center>
+</body>
+</html>
